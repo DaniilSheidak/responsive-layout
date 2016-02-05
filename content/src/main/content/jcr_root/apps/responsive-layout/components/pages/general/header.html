@@ -1,0 +1,9 @@
+<div data-sly-use.clientLibs="${'/libs/granite/sightly/templates/clientlib.html'}" data-sly-unwrap/>
+
+<div data-sly-include="/libs/wcm/core/components/init/init.jsp" data-sly-unwrap/>
+
+<div data-sly-test="${wcmmode.edit}" data-sly-unwrap>
+    <meta data-sly-call="${clientLibs.all @ categories='ccc.admin,cq.wcm.admin'}" data-sly-unwrap/>
+</div>
+
+<meta data-sly-call="${clientLibs.all @ categories='responsive-layout'}" data-sly-unwrap/>
