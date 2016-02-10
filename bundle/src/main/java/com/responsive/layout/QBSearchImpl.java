@@ -1,5 +1,8 @@
 package com.responsive.layout;
 
+import com.day.cq.dam.api.Asset;
+import com.day.cq.dam.api.DamConstants;
+import com.day.cq.dam.commons.util.DamUtil;
 import com.day.cq.search.PredicateGroup;
 import com.day.cq.search.Query;
 import com.day.cq.search.QueryBuilder;
@@ -10,6 +13,7 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.resource.LoginException;
+import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.api.resource.ResourceResolverFactory;
 import org.slf4j.Logger;
@@ -23,7 +27,7 @@ import java.util.*;
 /**
  * Created by daniil.sheidak on 02.02.2016.
  */
-@Component(immediate = true)
+@Component (immediate = true)
 @Service
 public class QBSearchImpl implements QBSearch {
     private static final Logger LOG = LoggerFactory.getLogger(QBSearchImpl.class);
@@ -31,22 +35,23 @@ public class QBSearchImpl implements QBSearch {
     @Reference
     private ResourceResolverFactory resourceResolverFactory;
 
-    public List<Page> getResults(String searchPath, String tagName, Integer elementsNumber, String sortDirection) {
+    public List<Image> getResults(String searchPath, String tagName, Integer elementsNumber, String sortDirection) {
         String logMessage = StringUtils.isNotBlank(tagName) ? "Searching pages by tag " + tagName + " started" : "Searching pages started";
         LOG.info(logMessage);
-        List<Page> pages = new ArrayList<Page>();
+        List<Image> assetList = new ArrayList<>();
+        ResourceResolver resolver = null;
         try {
-            ResourceResolver resolver = resourceResolverFactory.getAdministrativeResourceResolver(null);
+            resolver = resourceResolverFactory.getAdministrativeResourceResolver(null);
             QueryBuilder queryBuilder = resolver.adaptTo(QueryBuilder.class);
 
             Map<String, String> predicates = new HashMap<String, String>();
-            predicates.put("type", "cq:Page");
+            predicates.put("type", "dam:Asset");
             if(StringUtils.isNotBlank(searchPath)) {
                 predicates.put("path", searchPath);
             }
             if(StringUtils.isNotBlank(tagName)) {
                 predicates.put("fulltext", tagName);
-                predicates.put("fulltext.relPath", "jcr:content/@cq:tags");
+                predicates.put("fulltext.relPath", "jcr:content/cq:tags");
             }
 
             if (StringUtils.isNotBlank(sortDirection)) {
@@ -70,15 +75,21 @@ public class QBSearchImpl implements QBSearch {
             List<Hit> hits = result.getHits();
             hits.forEach(hit -> {
                 try {
-                    pages.add(new Page(hit.getTitle(), hit.getPath()));
+                    Resource resource = hit.getResource();
+                    Asset asset = DamUtil.resolveToAsset(resource);
+                    Image image = new Image(asset.getRendition(DamConstants.PREFIX_ASSET_THUMBNAIL + ".100.100.png").getPath());
+                    assetList.add(image);
                 } catch (RepositoryException e) {
                     LOG.error(e.getMessage());
                 }
             });
         } catch (LoginException e) {
             LOG.error(e.getMessage());
-            return Collections.emptyList();
+        } finally {
+            if(resolver != null) {
+                resolver.close();
+            }
         }
-        return pages;
+        return assetList;
     }
 }

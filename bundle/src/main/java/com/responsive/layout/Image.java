@@ -3,19 +3,12 @@ package com.responsive.layout;
 /**
  * Created by daniil.sheidak on 02.02.2016.
  */
-public class Page {
-    private String title;
+public class Image {
     private String path;
 
-    public Page(String title, String path) {
-        this.title = title;
+    public Image(String path) {
         this.path = path;
     }
-
-    public String getTitle() {
-        return title;
-    }
-
     public String getPath() {
         return path;
     }

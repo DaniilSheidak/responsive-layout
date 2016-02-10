@@ -104,6 +104,19 @@
             </plugin>
             <plugin>
                 <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <extensions>true</extensions>
+                <configuration>
+                    <instructions>
+                        <Sling-Model-Packages>
+                            com.responsive.layout.sling
+                        </Sling-Model-Packages>
+                        <Bundle-Category>sling-model-demo</Bundle-Category>
+                    </instructions>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.felix</groupId>
                 <artifactId>maven-scr-plugin</artifactId>
                 <executions>
                     <execution>
