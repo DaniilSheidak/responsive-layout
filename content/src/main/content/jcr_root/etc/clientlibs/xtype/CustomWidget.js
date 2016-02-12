@@ -1,13 +1,23 @@
 Ejst.CustomWidget = CQ.Ext.extend(CQ.form.CompositeField, {
- 
 
+    /**
+     * @private
+     * @type CQ.Ext.form.TextField
+     */
     hiddenField: null,
 
-    titleField: null,
+    /**
+     * @private
+     * @type CQ.Ext.form.ComboBox
+     */
+    allowField: null,
 
-    targetField: null,
-
-    pathField: null,
+    /**
+     * @private
+     * @type CQ.Ext.form.TextField
+     */
+    otherField: null,
+    linkField: null,
 
     constructor: function(config) {
         config = config || { };
@@ -19,18 +29,18 @@ Ejst.CustomWidget = CQ.Ext.extend(CQ.form.CompositeField, {
         config = CQ.Util.applyDefaults(config, defaults);
         Ejst.CustomWidget.superclass.constructor.call(this, config);
     },
- 
+
     // overriding CQ.Ext.Component#initComponent
     initComponent: function() {
         Ejst.CustomWidget.superclass.initComponent.call(this);
- 
+
         this.hiddenField = new CQ.Ext.form.Hidden({
             name: this.name
         });
         this.add(this.hiddenField);
- 
-        this.titleField = new CQ.form.TextField({
-            type:"textfield",
+
+        this.allowField = new CQ.form.Selection({
+            type:"select",
             cls:"ejst-customwidget-1",
             listeners: {
                 selectionchanged: {
@@ -40,22 +50,9 @@ Ejst.CustomWidget = CQ.Ext.extend(CQ.form.CompositeField, {
             },
             optionsProvider: this.optionsProvider
         });
-        this.add(this.titleField);
- 
-        this.targetField = new CQ.Ext.form.Selection({
-            type:"select",
-            cls:"ejst-customwidget-2",
-            listeners: {
-                change: {
-                    scope:this,
-                    fn:this.updateHidden
-                }
-            }
-        });
-        this.add(this.targetField);
+        this.add(this.allowField);
 
-        this.pathField = new CQ.Ext.form.TextField({
-            type:"textfield",
+        this.otherField = new CQ.Ext.form.TextField({
             cls:"ejst-customwidget-2",
             listeners: {
                 change: {
@@ -64,61 +61,71 @@ Ejst.CustomWidget = CQ.Ext.extend(CQ.form.CompositeField, {
                 }
             }
         });
-        this.add(this.pathField);
- 
+        this.add(this.otherField);
+
+        this.linkField = new CQ.Ext.form.TextField({
+            cls:"ejst-customwidget-2",
+            listeners: {
+                change: {
+                    scope:this,
+                    fn:this.updateHidden
+                }
+            }
+        });
+        this.add(this.linkField);
+
     },
- 
+
     // overriding CQ.form.CompositeField#processPath
     processPath: function(path) {
         console.log("CustomWidget#processPath", path);
-        this.targetField.processPath(path);
+        this.allowField.processPath(path);
     },
- 
+
     // overriding CQ.form.CompositeField#processRecord
     processRecord: function(record, path) {
         console.log("CustomWidget#processRecord", path, record);
-        this.targetField.processRecord(record, path);
+        this.allowField.processRecord(record, path);
     },
- 
+
     // overriding CQ.form.CompositeField#setValue
     setValue: function(value) {
-
-        //var parts = JSON.parse(value);
-        //this.titleField.setValue(parts.titleField);
-        //this.targetField.setValue(parts.targetField);
-        //this.pathField.setValue(parts.pathField);
-        //this.hiddenField.setValue(value);
-
-        var parts = value.split("/");
-        this.titleField.setValue(parts[0]);
-        this.targetField.setValue(parts[1]);
-        this.pathField.setValue(parts[2]);
+        var parts = JSON.parse(value);
+        //var parts = value.split("/");
+        this.allowField.setValue(parts.target);
+        this.otherField.setValue(parts.link);
+        this.linkField.setValue(parts.title);
         this.hiddenField.setValue(value);
     },
- 
+
     // overriding CQ.form.CompositeField#getValue
     getValue: function() {
         return this.getRawValue();
     },
- 
+
     // overriding CQ.form.CompositeField#getRawValue
     getRawValue: function() {
-        if (!this.titleField) {
+        if (!this.allowField) {
             return null;
         }
-        return this.titleField.getValue() + "/" +
-               this.targetField.getValue() + "/" +
-            this.pathField.getValue();
 
-        //return JSON.stringify({"titleField": titleField.getValue(), "targetField": targetField.getValue(), "pathField": pathField.getValue()});
+        var params =
+        {
+            "target":  this.allowField.getValue(),
+            "link":  this.otherField.getValue(),
+            "title":  this.linkField.getValue()
+
+        };
+
+        return JSON.stringify(params);
     },
- 
+
     // private
     updateHidden: function() {
         this.hiddenField.setValue(this.getValue());
     }
- 
+
 });
- 
+
 // register xtype
 CQ.Ext.reg('ejstcustom', Ejst.CustomWidget);
